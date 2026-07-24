@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { test as baseTest } from '@playwright/test';
 
 /**
@@ -32,14 +32,27 @@ export const test = baseTest.extend({
 
     // Disable all CSS animations and transitions for testing stability
     await page.addInitScript(() => {
-      const style = document.createElement('style');
-      style.textContent = `
+      const css = `
         *, *::before, *::after {
           transition: none !important;
           animation: none !important;
         }
       `;
-      document.head.appendChild(style);
+
+      const injectStyle = () => {
+        if (document.querySelector('style[data-e2e-disable-animations]')) return;
+
+        const parent = document.head || document.documentElement;
+        if (!parent) return;
+
+        const style = document.createElement('style');
+        style.setAttribute('data-e2e-disable-animations', 'true');
+        style.textContent = css;
+        parent.appendChild(style);
+      };
+
+      injectStyle();
+      document.addEventListener('DOMContentLoaded', injectStyle, { once: true });
     });
 
     await use(page);

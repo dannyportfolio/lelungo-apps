@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DealCard } from './DealCard';
 import { FilterBar } from './FilterBar';
@@ -14,19 +14,37 @@ import { useInViewAnimation, staggerContainerVariants } from '@/hooks/use-in-vie
 export function DealGrid() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [isChanging, setIsChanging] = useState(false);
+  const currentFilterRef = useRef<FilterType>('all');
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { ref, isInView } = useInViewAnimation();
 
   // Enrich all deals with insights (memoized — only runs once)
   const allDeals = useMemo(() => enrichDeals(MOCK_DEALS), []);
 
   const handleFilterChange = (newFilter: FilterType) => {
-    if (filter === newFilter) return;
+    if (currentFilterRef.current === newFilter) return;
+
+    currentFilterRef.current = newFilter;
+    setFilter(newFilter);
     setIsChanging(true);
-    setTimeout(() => {
-      setFilter(newFilter);
+
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+    }
+
+    transitionTimerRef.current = setTimeout(() => {
       setIsChanging(false);
-    }, 250);
+      transitionTimerRef.current = null;
+    }, 180);
   };
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+      }
+    };
+  }, []);
 
   const filteredDeals = filter === 'all'
     ? allDeals

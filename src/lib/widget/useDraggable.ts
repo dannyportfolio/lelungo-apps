@@ -11,7 +11,7 @@ export function useDraggable(
   const [isDragging, setIsDragging] = useState(false);
   const [isIdle, setIsIdle] = useState(true);
   
-  const idleTimeoutRef = useRef<NodeJS.Timeout>();
+  const idleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const elementRef = useRef<HTMLDivElement>(null);
   
   const dragInfo = useRef({

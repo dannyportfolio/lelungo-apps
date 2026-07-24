@@ -7,6 +7,8 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { AIInsight, MOCK_INSIGHTS } from '@/lib/mock-data';
 
+const ITEMS_PER_PAGE = 3;
+
 // ============================================================================
 // INDIVIDUAL CARD COMPONENT
 // ============================================================================
@@ -65,17 +67,12 @@ function AIInsightCard({ insight }: { insight: AIInsight }) {
 // FEED COMPONENT (INFINITE SCROLL)
 // ============================================================================
 export function AIInsightFeed() {
-  const [displayedInsights, setDisplayedInsights] = useState<AIInsight[]>([]);
+  const [displayedInsights, setDisplayedInsights] = useState<AIInsight[]>(() =>
+    MOCK_INSIGHTS.slice(0, ITEMS_PER_PAGE),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
   const loaderRef = useRef<HTMLDivElement>(null);
-
-  const ITEMS_PER_PAGE = 3;
-
-  // Initial Load
-  useEffect(() => {
-    setDisplayedInsights(MOCK_INSIGHTS.slice(0, ITEMS_PER_PAGE));
-  }, []);
 
   // Fetch more logic (simulates network delay and loops mock data)
   const fetchMore = useCallback(() => {
@@ -84,7 +81,6 @@ export function AIInsightFeed() {
 
     setTimeout(() => {
       const nextStartIndex = page * ITEMS_PER_PAGE;
-      const nextEndIndex = nextStartIndex + ITEMS_PER_PAGE;
       
       // We loop the mock data array if we run out to simulate "infinite"
       const newItems = Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => {

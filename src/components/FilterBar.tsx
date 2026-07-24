@@ -3,6 +3,7 @@
 import { Plane, Hotel, LayoutGrid } from 'lucide-react';
 import clsx from 'clsx';
 import type { FilterType } from '@/types';
+import type { ReactNode } from 'react';
 
 interface FilterBarProps {
   active: FilterType;
@@ -10,27 +11,15 @@ interface FilterBarProps {
   counts: { all: number; flight: number; hotel: number };
 }
 
-const FILTERS: { id: FilterType; label: string; icon: React.ReactNode }[] = [
+const FILTERS: { id: FilterType; label: string; icon: ReactNode }[] = [
   { id: 'all',    label: 'All Deals', icon: <LayoutGrid className="w-4 h-4" /> },
   { id: 'flight', label: 'Flights',   icon: <Plane className="w-4 h-4" /> },
   { id: 'hotel',  label: 'Hotels',    icon: <Hotel className="w-4 h-4" /> },
 ];
 
-import { useState } from 'react';
-
 export function FilterBar({ active, onChange, counts }: FilterBarProps) {
-  const [disabledId, setDisabledId] = useState<FilterType | null>(null);
-
   const handleClick = (id: FilterType) => {
-    if (active === id || disabledId === id) return;
-    
-    // Disable pointer events briefly
-    setDisabledId(id);
     onChange(id);
-    
-    setTimeout(() => {
-      setDisabledId(null);
-    }, 100);
   };
 
   return (
@@ -45,7 +34,7 @@ export function FilterBar({ active, onChange, counts }: FilterBarProps) {
             data-testid={`filter-${f.id}`}
             onClick={() => handleClick(f.id)}
             data-active={isActive}
-            disabled={disabledId === f.id}
+            aria-pressed={isActive}
             className={clsx(
               'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold min-w-fit',
               'border transition-colors transition-transform duration-200',

@@ -10,6 +10,7 @@ export async function GET() {
     // Return instantly with status 200 to fix the 504 Timeout Bug
     return NextResponse.json({ deals: enrichedDeals }, { status: 200 });
   } catch (error) {
+    console.error('[deals] Failed to enrich mock deals:', error);
     return NextResponse.json({ error: 'Failed to fetch deals' }, { status: 500 });
   }
 }

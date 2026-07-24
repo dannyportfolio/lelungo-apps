@@ -23,7 +23,9 @@ export async function POST(request: NextRequest) {
     // Only runs if Supabase env vars are configured
     if (
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project-id.supabase.co'
+      process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project-id.supabase.co' &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY !== 'your-service-role-key-here'
     ) {
       const { createAdminClient } = await import('@/lib/supabase/server');
       const supabase = createAdminClient();

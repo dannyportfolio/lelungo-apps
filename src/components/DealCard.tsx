@@ -1,10 +1,9 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { ExternalLink, Plane, Hotel, Star, Clock, Flame, Users } from 'lucide-react';
-import clsx from 'clsx';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { EnrichedDeal } from '@/types';
 import { formatIDR } from '@/lib/insight-engine';
 import { formatNumber } from '@/lib/format';
@@ -17,18 +16,8 @@ interface DealCardProps {
 export function DealCard({ deal }: DealCardProps) {
   const [loading, setLoading] = useState(false);
   const { insight } = deal;
-  const ref = useRef<HTMLElement>(null);
 
   const [imgSrc, setImgSrc] = useState(deal.image);
-
-  // Parallax logic
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  });
-  
-  // Move image up and down slowly as the card scrolls through the viewport
-  const imageY = useTransform(scrollYProgress, [0, 1], ['-10%', '10%']);
 
   const handleClick = async () => {
     if (loading) return;
@@ -57,7 +46,6 @@ export function DealCard({ deal }: DealCardProps) {
 
   return (
     <motion.article
-      ref={ref}
       variants={{
         hidden: { opacity: 0, y: 30 },
         visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 20 } }
@@ -69,7 +57,7 @@ export function DealCard({ deal }: DealCardProps) {
     >
       {/* ── High Quality Image (Parallax) ──────────── */}
       <div className="relative h-60 w-full overflow-hidden bg-muted/20">
-        <motion.div style={{ y: imageY }} className="absolute inset-[-10%] w-[120%] h-[120%]">
+        <motion.div className="absolute inset-[-10%] w-[120%] h-[120%]">
           <Image
             src={imgSrc || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80'}
             alt={deal.title}

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Plane, BarChart3, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import clsx from 'clsx';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll } from 'framer-motion';
 import { ThemeToggle } from './theme-toggle';
 
 const links = [
@@ -17,16 +17,6 @@ export function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { scrollY, scrollYProgress } = useScroll();
-  
-  // Transform background based on scroll
-  const background = useTransform(
-    scrollY,
-    [0, 50],
-    ['rgba(var(--background-rgb), 0)', 'var(--background)']
-  );
-  
-  const borderOpacity = useTransform(scrollY, [0, 50], [0, 1]);
-
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {

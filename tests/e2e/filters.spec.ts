@@ -2,7 +2,7 @@ import { test, waitForStableUI } from './test-utils';
 import { expect } from '@playwright/test';
 
 test.describe('Filter Button', () => {
-  test('should filter deals without flicker or layout shift', async ({ page }) => {
+  test('should filter deals without flicker or layout shift', async ({ page }, testInfo) => {
     await page.goto('/');
     await waitForStableUI(page);
 
@@ -14,7 +14,7 @@ test.describe('Filter Button', () => {
     await expect(page.getByTestId('deal-card').first()).toBeVisible();
     
     // Take screenshot BEFORE click
-    await page.screenshot({ path: 'before-filter.png' });
+    await page.screenshot({ path: testInfo.outputPath('before-filter.png') });
 
     // Click flight using Playwright's click (animations disabled via test-utils)
     await flightBtn.click();
@@ -25,7 +25,7 @@ test.describe('Filter Button', () => {
 
     // Wait for network/UI stability instead of arbitrary timeout
     await waitForStableUI(page);
-    await page.screenshot({ path: 'after-flight-filter.png' });
+    await page.screenshot({ path: testInfo.outputPath('after-flight-filter.png') });
 
     // Click hotel
     await hotelBtn.click();

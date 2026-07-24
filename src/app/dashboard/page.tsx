@@ -88,7 +88,7 @@ export default function DashboardPage() {
             icon={<MousePointerClick className="w-4 h-4" />}
             label="Total Deals"
             value={deals.length}
-            sub="Live in explore mode"
+            sub={`${rareDealCount} rare or flash`}
           />
           <StatCard
             icon={<TrendingUp className="w-4 h-4" />}
@@ -104,9 +104,9 @@ export default function DashboardPage() {
           />
           <StatCard
             icon={<Hotel className="w-4 h-4" />}
-            label="Rare Deals"
-            value={rareDealCount}
-            sub="Rare Deal or Flash Sale"
+            label="Hotel Deals"
+            value={hotels.length}
+            sub={`${Math.round((hotels.length / deals.length) * 100)}% of total`}
           />
         </div>
 

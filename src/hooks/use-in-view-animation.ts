@@ -3,9 +3,16 @@
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
 
-export function useInViewAnimation(once = true, margin = '-50px') {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once, margin: margin as any });
+type MarginValue = `${number}${'px' | '%'}`;
+type ViewMargin =
+  | MarginValue
+  | `${MarginValue} ${MarginValue}`
+  | `${MarginValue} ${MarginValue} ${MarginValue}`
+  | `${MarginValue} ${MarginValue} ${MarginValue} ${MarginValue}`;
+
+export function useInViewAnimation(once = true, margin: ViewMargin = '-50px') {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const isInView = useInView(ref, { once, margin });
 
   return { ref, isInView };
 }

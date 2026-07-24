@@ -8,8 +8,6 @@ test.describe('Interactions', () => {
 
     // Instead of arbitrary scrollBy, we scroll to the footer or element specifically
     // Since AIInsightFeed is lazy loaded and might be at the bottom:
-    const aiInsightContainer = page.locator('.max-w-4xl').filter({ hasText: 'AI Confidence' }).first();
-    
     // Fallback: Just scroll the page to trigger intersection observer
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await waitForStableUI(page);

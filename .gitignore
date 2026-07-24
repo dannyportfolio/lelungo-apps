@@ -36,6 +36,12 @@ pids
 coverage
 *.lcov
 
+# Test artifacts
+playwright-report/
+test-results/
+/before-filter.png
+/after-flight-filter.png
+
 # TypeScript
 *.tsbuildinfo
 

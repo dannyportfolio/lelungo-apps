@@ -7,14 +7,18 @@ export const metadata: Metadata = {
   description: 'Premium QA and Test Results Dashboard',
 };
 
+const QADashboard = dynamic(() => import('@/internal/qa/QADashboard'), {
+  loading: () => (
+    <div className="flex h-screen items-center justify-center bg-[#0B0F1A] text-white">
+      Loading QA Environment...
+    </div>
+  ),
+});
+
 export default function QAPageWrapper() {
   if (process.env.NEXT_PUBLIC_ENABLE_QA !== 'true') {
     notFound();
   }
-  
-  const QADashboard = dynamic(() => import('@/internal/qa/QADashboard'), {
-    loading: () => <div className="flex h-screen items-center justify-center bg-[#0B0F1A] text-white">Loading QA Environment...</div>
-  });
 
   return <QADashboard />;
 }
