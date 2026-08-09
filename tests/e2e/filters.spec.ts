@@ -1,9 +1,9 @@
-import { test, waitForStableUI } from './test-utils';
+import { gotoApp, test, waitForStableUI } from './test-utils';
 import { expect } from '@playwright/test';
 
 test.describe('Filter Button', () => {
   test('should filter deals without flicker or layout shift', async ({ page }, testInfo) => {
-    await page.goto('/');
+    await gotoApp(page);
     await waitForStableUI(page);
 
     const allBtn = page.getByTestId('filter-all');
@@ -34,7 +34,7 @@ test.describe('Filter Button', () => {
   });
 
   test('Stability Test (Anti-Glitch) - rapid click filters', async ({ page }) => {
-    await page.goto('/');
+    await gotoApp(page);
     await waitForStableUI(page);
     
     const allBtn = page.getByTestId('filter-all');

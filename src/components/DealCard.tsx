@@ -23,20 +23,18 @@ export function DealCard({ deal }: DealCardProps) {
     if (loading) return;
     setLoading(true);
 
-    try {
-      fetch('/api/track-click', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_type: deal.productType,
-          destination: deal.destination,
-          deal_id: deal.id,
-          price: deal.price,
-        }),
-      });
-    } catch {
-      // Silent fail
-    }
+    void fetch('/api/track-click', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_type: deal.productType,
+        destination: deal.destination,
+        deal_id: deal.id,
+        price: deal.price,
+      }),
+    }).catch(() => {
+      // Analytics must never block the outbound affiliate action.
+    });
 
     setTimeout(() => {
       window.open(deal.affiliateUrl, '_blank', 'noopener,noreferrer');

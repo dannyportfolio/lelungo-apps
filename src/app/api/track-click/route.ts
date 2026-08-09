@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { ClickEvent } from '@/types';
+import { clickEventSchema } from '@/modules/analytics/click-event';
 
 // ============================================================
 // POST /api/track-click
@@ -8,16 +8,15 @@ import type { ClickEvent } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const body: ClickEvent = await request.json();
-    const { product_type, destination, deal_id, price } = body;
-
-    // Validate required fields
-    if (!product_type || !destination || !deal_id) {
+    const result = clickEventSchema.safeParse(await request.json());
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: product_type, destination, deal_id' },
+        { error: 'Invalid click event' },
         { status: 400 },
       );
     }
+
+    const { product_type, destination, deal_id, price } = result.data;
 
     // ── Store click in Supabase ──────────────────────────────
     // Only runs if Supabase env vars are configured
@@ -45,13 +44,8 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Supabase not configured — log to console in dev
-      console.log('[track-click] Mock tracking:', {
-        product_type,
-        destination,
-        deal_id,
-        price,
-        timestamp: new Date().toISOString(),
-      });
+      // Intentionally no payload logging: analytics input is untrusted and may
+      // later contain tenant or visitor metadata.
     }
 
     return NextResponse.json({ ok: true, tracked: true }, { status: 200 });

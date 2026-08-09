@@ -1,0 +1,24 @@
+schema: spec-driven
+context: |
+  Lelungo is a brownfield Next.js modular monolith evolving into a multi-tenant PMS.
+  Runtime is Node.js 22+, package manager is npm, language is strict TypeScript,
+  transactional persistence is PostgreSQL through Prisma, and Zod validates boundaries.
+  Repository documentation is authoritative. Read AGENTS.md before proposing changes.
+rules:
+  proposal:
+    - Include Context, Goals, Non-goals, Risks, Migration impact, and Rollback.
+    - Distinguish implemented behavior from target behavior.
+  tasks:
+    - Keep tasks independently verifiable and name the relevant quality gate.
+  design:
+    - Document tenant isolation, authorization, data ownership, and dependency direction.
+  specs:
+    - Use normative SHALL/MUST requirements and at least one scenario per requirement.
+operations:
+  apply:
+    guidance:
+      - Implement the smallest safe batch and preserve unrelated user changes.
+      - Run lint, typecheck, relevant tests, and build before completion.
+  archive:
+    guidance:
+      - Record actual verification and update session handoff before archiving.

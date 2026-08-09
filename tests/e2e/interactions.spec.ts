@@ -1,9 +1,9 @@
-import { test, waitForStableUI } from './test-utils';
+import { gotoApp, test, waitForStableUI } from './test-utils';
 import { expect } from '@playwright/test';
 
 test.describe('Interactions', () => {
   test('AI Insight Click - redirect works', async ({ page }) => {
-    await page.goto('/');
+    await gotoApp(page);
     await waitForStableUI(page);
 
     // Instead of arbitrary scrollBy, we scroll to the footer or element specifically
@@ -25,7 +25,7 @@ test.describe('Interactions', () => {
   });
 
   test('Deal Card Test', async ({ page }) => {
-    await page.goto('/');
+    await gotoApp(page);
     await waitForStableUI(page);
 
     const firstDeal = page.getByTestId('deal-card').first();
@@ -42,7 +42,7 @@ test.describe('Interactions', () => {
   });
 
   test('Scroll Interaction', async ({ page }) => {
-    await page.goto('/');
+    await gotoApp(page);
     await waitForStableUI(page);
 
     // Scroll to bottom
@@ -60,7 +60,7 @@ test.describe('Interactions', () => {
   });
 
   test('Dark Mode Toggle', async ({ page }) => {
-    await page.goto('/');
+    await gotoApp(page);
     await waitForStableUI(page);
 
     const themeToggle = page.locator('button[aria-label="Toggle theme"]');

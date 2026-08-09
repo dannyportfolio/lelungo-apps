@@ -69,9 +69,14 @@ export const test = baseTest.extend({
  * and checking for common UI placeholders or loaders to disappear.
  */
 export async function waitForStableUI(page: Page) {
-  // Wait for all network requests to finish
-  await page.waitForLoadState('networkidle');
-  
-  // Optional: If there's a global loader, wait for it to be hidden
-  // e.g. await expect(page.locator('.loader')).toBeHidden();
+  await page.locator('body').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => document.body.innerText.trim().length > 0);
+  await page.evaluate(
+    () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))),
+  );
+}
+
+export async function gotoApp(page: Page, path = '/') {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+  await waitForStableUI(page);
 }

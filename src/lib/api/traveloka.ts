@@ -1,12 +1,15 @@
+import 'server-only';
+
 /**
  * Traveloka API Client
  *
  * Konfigurasi client untuk memanggil API Traveloka menggunakan Environment Variables.
  */
 
-// Mengambil environment variables dari .env.local
-const TRAVELOKA_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_TRAVELOKA_URL || "";
-const TRAVELOKA_APP_KEY = process.env.NEXT_PUBLIC_API_APP_KEY_TRAVELOKA_URL || "";
+// Credentials must remain server-only. This adapter is dormant until a real,
+// documented provider contract and credentials are available.
+const TRAVELOKA_BASE_URL = process.env.TRAVELOKA_BASE_URL || '';
+const TRAVELOKA_APP_KEY = process.env.TRAVELOKA_APP_KEY || '';
 
 /**
  * Custom Fetch Wrapper untuk API Traveloka.
@@ -17,7 +20,7 @@ export async function fetchTraveloka<T>(
   options: RequestInit = {}
 ): Promise<T> {
   if (!TRAVELOKA_BASE_URL || !TRAVELOKA_APP_KEY) {
-    console.warn("Peringatan: API Key atau Base URL Traveloka belum terisi dengan benar di .env.local");
+    throw new Error('Traveloka integration is not configured.');
   }
 
   // Jika BASE_URL bukan URL penuh (misalnya hanya '0n3Sjl5t'), 
