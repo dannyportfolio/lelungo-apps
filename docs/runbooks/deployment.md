@@ -1,6 +1,12 @@
 # Deployment
 
-Deployment is not yet configured or verified. The target procedure is:
+GitHub integration currently creates protected Vercel previews in two existing
+projects, `lelungo` and legacy-named `lelunngo`. Both projects built the
+foundation branch successfully on 2026-08-09. The duplicate project mapping is
+an unresolved release risk: select one canonical production project before any
+promotion. Production promotion and database migration remain unverified.
+
+The release procedure is:
 
 1. Merge only after CI quality gates and review.
 2. Build one immutable artifact with scoped environment configuration.
