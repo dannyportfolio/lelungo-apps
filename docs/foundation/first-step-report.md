@@ -1,5 +1,7 @@
 # Lelungo foundation first-step report
 
+> Historical snapshot from the Phase 0 foundation checkpoint on 2026-08-08. Statements such as “authentication adapter belum ada” describe that checkpoint, not the current repository. Use `docs/runbooks/session-handoff.md` and the active OpenSpec verification records for current status.
+
 Date: 2026-08-08
 
 ## Executive summary
@@ -74,37 +76,37 @@ OpenCode is primary and provider-neutral. 9Router/OpenRouter/vLLM/Ollama are opt
 
 ## Actual test results
 
-| Check | Status | Catatan |
-| --- | --- | --- |
-| Install | PASS | `npm install`; up to date, 569 packages, 0 vulnerabilities |
-| Format | PASS | foundation source files matched Prettier |
-| Prisma validation | PASS | schema valid using synthetic parse-only `DATABASE_URL`; no connection/migration |
-| OpenSpec | PASS | 2 specs passed, 0 failed |
-| Lint | PASS | ESLint exit 0 |
-| Typecheck | PASS | Next typegen and `tsc --noEmit` exit 0 |
-| Unit Test | PASS | 3 files, 9 tests |
-| Integration Test | NOT RUN | no disposable PostgreSQL configured |
-| Browser E2E | PASS | production artifact, Chromium, 8/8, one worker, no retry |
-| Build | PASS | Next.js 16.3.0; 8 routes generated |
-| Dependency audit | PASS | `npm audit --audit-level=critical`: 0 vulnerabilities |
-| Local Smoke Test | PASS | HTTP 200 plus homepage/hydration 2/2 on production server port 3001 |
-| Formal security scan | NOT RUN | Python preflight blocker |
+| Check                | Status  | Catatan                                                                         |
+| -------------------- | ------- | ------------------------------------------------------------------------------- |
+| Install              | PASS    | `npm install`; up to date, 569 packages, 0 vulnerabilities                      |
+| Format               | PASS    | foundation source files matched Prettier                                        |
+| Prisma validation    | PASS    | schema valid using synthetic parse-only `DATABASE_URL`; no connection/migration |
+| OpenSpec             | PASS    | 2 specs passed, 0 failed                                                        |
+| Lint                 | PASS    | ESLint exit 0                                                                   |
+| Typecheck            | PASS    | Next typegen and `tsc --noEmit` exit 0                                          |
+| Unit Test            | PASS    | 3 files, 9 tests                                                                |
+| Integration Test     | NOT RUN | no disposable PostgreSQL configured                                             |
+| Browser E2E          | PASS    | production artifact, Chromium, 8/8, one worker, no retry                        |
+| Build                | PASS    | Next.js 16.3.0; 8 routes generated                                              |
+| Dependency audit     | PASS    | `npm audit --audit-level=critical`: 0 vulnerabilities                           |
+| Local Smoke Test     | PASS    | HTTP 200 plus homepage/hydration 2/2 on production server port 3001             |
+| Formal security scan | NOT RUN | Python preflight blocker                                                        |
 
 The first full E2E attempt against `next dev` timed out after 304 seconds. A production-server rerun was used as the authoritative browser result; the dev-server hang remains an environment/tooling issue.
 
 ## Readiness score
 
-| Dimension | Score | Reason |
-| --- | ---: | --- |
-| System Design | 8/10 | Domain, flows, ownership, migration, and risk direction documented |
-| Architecture | 8/10 | Modular boundaries and dependency direction established; most PMS modules remain planned |
-| Infrastructure | 6/10 | Environments, deploy, recovery, and jobs designed; live staging/production not configured |
-| Security | 6/10 | Tenancy/RBAC/input/server boundaries improved; auth, audit log, DB isolation test, formal scan missing |
-| Maintainability | 8/10 | Guardrails, docs, modules, CI, and handoff present; legacy prototype remains |
-| Testability | 7/10 | Unit/E2E foundations pass; database integration layer absent |
-| Documentation | 9/10 | Current/target maps, ADR, specs, runbooks, rationale, and report present |
-| Agent Readiness | 9/10 | OpenCode/OpenSpec/provider-neutral workflow and permissions configured |
-| Production Readiness | 4/10 | Build is healthy, but auth, real DB migration, observability, deployment, and operational validation are absent |
+| Dimension            | Score | Reason                                                                                                          |
+| -------------------- | ----: | --------------------------------------------------------------------------------------------------------------- |
+| System Design        |  8/10 | Domain, flows, ownership, migration, and risk direction documented                                              |
+| Architecture         |  8/10 | Modular boundaries and dependency direction established; most PMS modules remain planned                        |
+| Infrastructure       |  6/10 | Environments, deploy, recovery, and jobs designed; live staging/production not configured                       |
+| Security             |  6/10 | Tenancy/RBAC/input/server boundaries improved; auth, audit log, DB isolation test, formal scan missing          |
+| Maintainability      |  8/10 | Guardrails, docs, modules, CI, and handoff present; legacy prototype remains                                    |
+| Testability          |  7/10 | Unit/E2E foundations pass; database integration layer absent                                                    |
+| Documentation        |  9/10 | Current/target maps, ADR, specs, runbooks, rationale, and report present                                        |
+| Agent Readiness      |  9/10 | OpenCode/OpenSpec/provider-neutral workflow and permissions configured                                          |
+| Production Readiness |  4/10 | Build is healthy, but auth, real DB migration, observability, deployment, and operational validation are absent |
 
 ## Unresolved issues and next action
 

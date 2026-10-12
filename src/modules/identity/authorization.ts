@@ -1,14 +1,21 @@
 import type { PermissionKey } from './role-catalog';
 
 export interface MembershipAuthorization {
+  membershipId: string;
   tenantId: string | null;
   status: 'ACTIVE' | 'INVITED' | 'SUSPENDED' | 'REVOKED';
+  propertyAccessMode: 'ALL_PROPERTIES' | 'SELECTED_PROPERTIES';
+  propertyScopeVersion: number;
   permissions: readonly string[];
 }
 
+export const AUTHORIZATION_DENIED_MESSAGE = 'Access denied.';
+
 export class AuthorizationError extends Error {
-  constructor(message: string) {
-    super(message);
+  readonly code = 'AUTHORIZATION_DENIED';
+
+  constructor() {
+    super(AUTHORIZATION_DENIED_MESSAGE);
     this.name = 'AuthorizationError';
   }
 }
@@ -26,11 +33,11 @@ export function requireTenantPermission(
   permission: PermissionKey,
 ): MembershipAuthorization {
   if (!membership || membership.tenantId !== tenantId) {
-    throw new AuthorizationError('An active membership for this tenant is required.');
+    throw new AuthorizationError();
   }
 
   if (!hasPermission(membership, permission)) {
-    throw new AuthorizationError(`Missing required permission: ${permission}`);
+    throw new AuthorizationError();
   }
 
   return membership;

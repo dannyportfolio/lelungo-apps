@@ -1,12 +1,13 @@
 # Integrations inventory
 
-| Integration | Current use | Boundary | Status |
-| --- | --- | --- | --- |
-| Supabase | Browser/server helpers and legacy click inserts | `src/lib/supabase` | Optional, partial |
-| PostgreSQL | Target transactional data through Prisma | `prisma`, `src/shared/database` | Schema only; no deployed DB verified |
-| Traveloka-style affiliate API | Deal request helper | `src/lib/api/traveloka.ts` | Optional; credentials not verified |
-| Vercel | Metadata URL environment conventions; compatible deployment | Next.js | Deployment not verified |
-| OpenCode/OpenSpec | Agent runtime and spec workflow | repository tooling | Configured locally |
-| 9Router/OpenRouter/local inference | Optional external model routing | agent tooling only | Documented, not required or verified |
+| Integration                        | Current use                                                            | Boundary                                   | Status                                                                                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase Auth                      | Staff sign-in, callback, sign-out, cookie refresh, verified subject    | `src/lib/supabase`, `src/modules/identity` | Implemented foundation; live provider and production-domain behavior not verified                                                              |
+| Supabase legacy analytics          | Optional service-role click inserts                                    | `src/lib/supabase`                         | Optional and separate from the PMS transactional store                                                                                         |
+| PostgreSQL                         | Tenancy, RBAC, Property, scope, catalog, and audit data through Prisma | `prisma`, `src/shared/database`            | Phase 1/2 migrations exercised locally; five Phase 2 integration files passed 29/29 on disposable PostgreSQL 16; no deployed database verified |
+| Traveloka-style affiliate API      | Deal request helper                                                    | `src/lib/api/traveloka.ts`                 | Optional; credentials not verified                                                                                                             |
+| Vercel                             | Metadata URL conventions and protected preview deployments             | Next.js / GitHub integration               | Preview verified in two projects; production not promoted and canonical project unresolved                                                     |
+| OpenCode/OpenSpec                  | Agent runtime and spec workflow                                        | repository tooling                         | Configured locally                                                                                                                             |
+| 9Router/OpenRouter/local inference | Optional external model routing                                        | agent tooling only                         | Documented, not required or verified                                                                                                           |
 
-No payment, email, WhatsApp, storage, webhook, analytics platform, background worker, or scheduled-job integration is implemented. Supabase is not authentication in the current application merely because auth-capable SDKs are installed.
+No payment, email, WhatsApp, storage, webhook, analytics platform, background worker, or scheduled-job integration is implemented. Supabase Auth now establishes a verified subject for protected staff requests, but it does not grant tenant authority; that authority still requires an active same-tenant PostgreSQL membership and an explicit permission where the operation demands one.

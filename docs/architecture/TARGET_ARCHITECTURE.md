@@ -6,8 +6,8 @@ Lelungo will be a Node.js LTS, Next.js App Router modular monolith. Next.js rout
 
 ```text
 Browser / tenant host
-  -> Next.js middleware/proxy: normalize host, resolve tenant domain
-  -> route layout: session + actor + tenant context + permission gate
+  -> Next.js proxy: normalize host and overwrite the internal tenant-subdomain header
+  -> server composition: verify session, resolve tenant domain, membership, permission, and resource scope
   -> route handler / server action
   -> domain service: validation, pricing, state transitions, transaction
   -> tenant-safe repository: enforced TenantContext, explicit DTO select
@@ -35,8 +35,10 @@ src/
     identity/                Session, actor context, RBAC
     tenancy/                 Tenant domains, provisioning, isolation
     platform-billing/        Lelungo subscription invoices/payments
-    property/                Property, building, rooms, amenities
-    inventory/               Availability, rate plans, restrictions
+    properties/              Property profile, address, timezone, lifecycle, catalogs
+    rooms/                   RoomType/Unit accommodation identity (Phase 3 target)
+    inventory/               Availability/capacity/blocks (Phase 3 target)
+    pricing/                 Rate plans, restrictions, quotes (Phase 3 target)
     bookings/                Booking aggregate, assignment, lifecycle
     guest-finance/           Guest invoices, payments, refunds
     operations/              Front desk, housekeeping, maintenance
@@ -77,3 +79,7 @@ The PMS booking aggregate owns availability decisions. Public booking uses its s
 ## Observability and security
 
 Every request/job has correlation ID and structured logs. Audit logging is immutable and redacts tokens, passwords, API keys, bank credentials, smart-lock PINs, identity values, and private URLs. Webhooks are signature-verified and idempotent. Sensitive DTOs are intentionally shaped rather than returning database records.
+
+## Current implementation checkpoint
+
+Phase 2 implements the modular-monolith path for trusted Tenant resolution, authenticated staff membership/RBAC, tenant-owned Property, explicit Property scope, bounded DTOs/cursors, and narrow transactional audit writes. It does not implement RoomType/Unit, inventory, pricing, entitlements, reservations, payments, operations, public booking, jobs/outbox, or webhook behavior. Five individually invoked integration files passed 29/29 tests on disposable PostgreSQL 16. Focused real tenant-host authentication and missing-permission browser scenarios passed after the Proxy/Host normalization correction, but the complete seven-scenario Property E2E rerun remains incomplete; staging, production, live-provider, and remote-CI evidence also remain open.

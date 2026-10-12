@@ -1,10 +1,17 @@
 # Tenant Isolation
 
-Phase 1 establishes the tenant boundary but deliberately does not add booking or payment data.
+The current foundation establishes provider-verified request identity, host-derived Tenant resolution, active membership/permission checks, and tenant-owned Property authorization. It deliberately adds no RoomType/Unit, inventory, pricing, reservation, guest, or payment data. The production request-context entry derives its actor internally through the server-only Supabase authentication adapter; callers cannot supply an actor, Tenant ID, membership ID, access mode, or grant as authority.
 
 1. `proxy.ts` derives a normalized subdomain from the actual request hostname and overwrites `x-lelungo-tenant-subdomain` on every matching request.
-2. Server code resolves that normalized subdomain through `TenantRepository`; it never treats a request body, query parameter, or caller-provided tenant ID as authoritative.
-3. `RequestTenantContext` contains the resolved tenant, authenticated actor, active membership, and correlation ID. `applyTenantScope` provides the required tenant ID and rejects conflicting values.
-4. `requireTenantPermission` confirms an active membership belongs to the resolved tenant before granting an explicit permission.
+2. Proxy cookie refresh is optimistic transport work only. The request-context boundary independently verifies the current provider user and accepts only a valid UUID subject.
+3. Server code resolves the normalized subdomain through `TenantRepository`; it never treats a request body, query parameter, forwarding header, or caller-provided tenant ID as authoritative.
+4. `RequestTenantContext` contains the resolved Tenant, verified actor, same-Tenant `ACTIVE` membership when one exists, explicit Property access mode/scope version, permissions, and correlation ID. `applyTenantScope` supplies the required Tenant ID and rejects conflicting values.
+5. Protected Property helpers require the named permission and either explicit `ALL_PROPERTIES` or a current same-Tenant selected grant. Missing/invalid scope, stale scope version, inactive membership, absent permission, and foreign/ungranted identifiers deny before the protected repository callback.
+6. Repository predicates lead with the trusted `tenant_id` and recheck the active membership, permission, access mode/version, and selected grant where applicable. Authorized lists apply scope in one bounded set-based query rather than loading rows and filtering in the UI.
+7. The Phase 2 schema repeats `tenant_id` on Property children, selected grants, audit references, and Tenant role assignments. Composite keys/foreign keys prevent a membership, role, Property, granting membership, or audit reference from crossing Tenant ownership. Role scope and Tenant presence must also agree.
+8. Property creation requires `property.manage` plus `ALL_PROPERTIES`; scope administration requires `staff.manage`, `ALL_PROPERTIES`, a different active target membership, and expected scope version. Server Actions repeat these checks inside the mutation boundary.
+9. A Property slug or ID selects a requested resource only. The server-side published resolver requires trusted Tenant context and returns one allowlisted `PUBLISHED` identity owned by an active Tenant; every missing, foreign, or non-public state maps to the same public not-found outcome.
 
-All future tenant repositories must take a tenant context (or its resolved tenant ID from a context) and use explicit selections/DTOs. Platform queries and future impersonation are separate, explicitly authorized flows.
+Five individually invoked Phase 2/tenancy integration files passed 29/29 tests on disposable PostgreSQL 16, including cross-Tenant role/grant, same-Tenant cross-Property denial, database-constraint, and service-isolation cases. Focused real tenant-host authentication and missing-permission browser scenarios also passed after the Proxy/Host correction. The complete seven-scenario Property E2E rerun remains incomplete, so only the named focused browser boundary has passing evidence; staging, production, and remote-CI isolation evidence remain open.
+
+All future Tenant repositories must take a Tenant context (or its resolved Tenant ID from a context) and use explicit selections/DTOs. Phase 3 must additionally carry the trusted Property context into RoomType/Unit, inventory, pricing, and entitlement operations. Platform queries and future impersonation are separate, explicitly authorized flows.

@@ -2,6 +2,13 @@ import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.BASE_URL || 'http://localhost:3000';
 const devServerPort = new URL(baseURL).port || '3000';
+const builtInAuthenticationProviderURL = 'http://127.0.0.1:54329';
+const authenticationProviderURL = process.env.E2E_SUPABASE_URL || builtInAuthenticationProviderURL;
+const nodeExecutable = `"${process.execPath}"`;
+const applicationServerCommand =
+  process.env.PLAYWRIGHT_USE_PRODUCTION_SERVER === 'true'
+    ? `${nodeExecutable} ./node_modules/next/dist/bin/next start -p ${devServerPort}`
+    : `${nodeExecutable} ./node_modules/next/dist/bin/next dev -p ${devServerPort}`;
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -11,7 +18,7 @@ export default defineConfig({
   /* Maximum time one test can run for. */
   timeout: 30 * 1000,
   expect: {
-    timeout: 5000
+    timeout: 5000,
   },
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -33,10 +40,10 @@ export default defineConfig({
 
     /* Collect trace always on failure. See https://playwright.dev/docs/trace-viewer */
     trace: 'on',
-    
+
     /* Take screenshots on failure */
     screenshot: 'only-on-failure',
-    
+
     /* Retain video on failure */
     video: 'retain-on-failure',
   },
@@ -50,14 +57,22 @@ export default defineConfig({
     // We can add Firefox and WebKit later if needed
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Run a local application server before starting the tests. */
   webServer:
     process.env.PLAYWRIGHT_SKIP_WEBSERVER === 'true'
       ? undefined
       : {
-          command: `npm run dev -- -p ${devServerPort}`,
-          url: baseURL,
+          command: applicationServerCommand,
+          port: Number(devServerPort),
           reuseExistingServer: !process.env.CI,
           timeout: 120 * 1000,
+          env: {
+            NEXT_PUBLIC_SUPABASE_URL: authenticationProviderURL,
+            NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.E2E_SUPABASE_PUBLIC_KEY || 'e2e-public-key',
+            LELUNGO_ENABLE_LOCAL_TENANT_HOSTS: 'true',
+            ...(process.env.TEST_DATABASE_URL
+              ? { DATABASE_URL: process.env.TEST_DATABASE_URL }
+              : {}),
+          },
         },
 });

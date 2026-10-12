@@ -39,6 +39,7 @@ coverage
 # Test artifacts
 playwright-report/
 test-results/
+tests/integration/.tmp/
 /before-filter.png
 /after-flight-filter.png
 

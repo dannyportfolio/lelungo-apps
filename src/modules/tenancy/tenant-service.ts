@@ -42,12 +42,32 @@ export async function createTenant(input: z.input<typeof createTenantInputSchema
       throw new Error('Tenant owner role was not initialized.');
     }
 
-    await transaction.staffMembership.create({
+    const ownerMembership = await transaction.staffMembership.create({
       data: {
         userId: parsed.ownerUserId,
         tenantId: tenant.id,
         status: 'ACTIVE',
+        propertyAccessMode: 'ALL_PROPERTIES',
+        propertyScopeVersion: 1,
         roles: { create: { roleId: ownerRole.id } },
+      },
+      select: { id: true, propertyScopeVersion: true },
+    });
+
+    await transaction.auditEvent.create({
+      data: {
+        tenantId: tenant.id,
+        actorType: 'SYSTEM',
+        actorId: 'tenant-provisioning',
+        action: 'TENANT_OWNER_PROPERTY_SCOPE_BOOTSTRAPPED',
+        targetType: 'STAFF_MEMBERSHIP',
+        targetId: ownerMembership.id,
+        result: 'SUCCEEDED',
+        aggregateVersion: ownerMembership.propertyScopeVersion,
+        previousScopeVersion: null,
+        resultingScopeVersion: ownerMembership.propertyScopeVersion,
+        correlationId: crypto.randomUUID(),
+        changedFields: ['propertyAccessMode', 'propertyScopeVersion'],
       },
     });
 

@@ -18,7 +18,7 @@ const FILTERS: { id: FilterType; label: string; icon: ReactNode }[] = [
 ];
 
 export function FilterBar({ active, onChange, counts }: FilterBarProps) {
-  const handleClick = (id: FilterType) => {
+  const handleClick = (id: FilterType) => { 
     onChange(id);
   };
 

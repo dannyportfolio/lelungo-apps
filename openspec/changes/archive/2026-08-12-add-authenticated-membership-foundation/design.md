@@ -4,7 +4,7 @@ See `proposal.md` for motivation and scope. The current request path accepts an 
 
 Supabase SSR clients and cookie-based helpers already exist, but they are used as infrastructure utilities rather than a defined identity adapter. The repository currently installs `@supabase/ssr` 0.5.2 while the package's current session-refresh contract has evolved. Next.js 16 supports a single root `proxy.ts`; its own guidance limits Proxy to optimistic checks and requires authorization near data access. Server Components can read but cannot reliably write refreshed cookies.
 
-PostgreSQL is the transactional authority, but this workstation currently has neither a reachable Docker daemon nor `psql`. Integration tests therefore need an explicit disposable database contract that CI and suitably configured developer environments can satisfy without making ordinary unit tests destructive.
+PostgreSQL is the transactional authority. Docker was initially unavailable during planning, so integration tests require an explicit disposable database contract that CI and suitably configured developer environments can satisfy without making ordinary unit tests destructive. During implementation, Docker Desktop became reachable and supplied the disposable PostgreSQL 16 evidence recorded below.
 
 ## Goals / Non-Goals
 
@@ -135,3 +135,12 @@ Data ownership remains:
 7. Update current-system docs, environment/testing runbooks, and session handoff with actual results. No production migration or deployment is executed from this change.
 
 Rollback restores the previous application artifact and compatible Supabase SSR dependency. Because no schema change is planned, membership data remains usable. If a forward constraint migration is added and has been applied outside a disposable environment, it is not edited or reversed blindly; deploy a compatible application rollback and handle schema correction through a reviewed forward migration.
+
+## Implementation evidence and deviations (2026-08-10)
+
+- The reviewed installed auth packages are `@supabase/ssr` 0.12.4 and peer-aligned `@supabase/supabase-js` 2.112.2. Proxy cookie handling follows the installed `setAll(cookies, responseHeaders)` contract and copies provider cache headers before enforcing private/no-store.
+- A disposable local PostgreSQL 16 database became available. The existing committed migration and nine integration scenarios passed; no schema defect was exposed, so no Prisma schema or migration was changed.
+- Browser coverage uses a deterministic local Supabase Auth contract fixture by default and can target an external test provider through explicit E2E variables. This proves the application boundary but is not live-provider or production-cookie evidence.
+- The manual eight-category security review made the cookie policy explicit (`HttpOnly`, host-only, `SameSite=Lax`, and `Secure` in production), bound concurrent PKCE callbacks through validated `sb_flow_id`, and added local-session fallback when provider sign-out revocation fails. Regression tests cover each correction.
+- The final tenant-host browser fixture creates and removes one exact tenant/domain in the validated disposable database and deliberately creates no membership. Both browser scenarios completed every assertion and the fixture cleanup hook; the Windows Playwright command later timed out while tearing down its managed application server, so the command itself is recorded as exit 124 rather than a pass.
+- The formal Codex Security diff-scan preflight passed, but its MCP launcher failed before creating a scan because the runtime could not start its Python 3 helper. No formal clean security result is claimed.

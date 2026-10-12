@@ -1,22 +1,33 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+
+import {
+  isAuthenticationRequest,
+  refreshSupabaseSession,
+  requestMayContainSupabaseAuthentication,
+} from '@/lib/supabase/proxy';
 import {
   resolveTenantSubdomainFromHost,
   type TenantHostResolutionOptions,
 } from '@/modules/tenancy/subdomain';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (
     request.nextUrl.pathname.startsWith('/qa') &&
     process.env.NODE_ENV === 'production' &&
     process.env.NEXT_PUBLIC_ENABLE_QA !== 'true'
   ) {
-    return NextResponse.rewrite(new URL('/404', request.url));
+    return NextResponse.rewrite(new URL('/_not-found', request.url));
   }
 
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-id', crypto.randomUUID());
+  // Server Actions must compare Origin against the actual routed Host. A
+  // client-supplied forwarding header is not a trusted ingress signal here.
+  requestHeaders.delete('x-forwarded-host');
+  const routedHost = request.headers.get('host') ?? request.nextUrl.hostname;
   const tenantSubdomain = resolveTenantSubdomainFromHost(
-    request.nextUrl.hostname,
+    routedHost,
     getTenantHostResolutionOptions(),
   );
 
@@ -26,6 +37,13 @@ export function proxy(request: NextRequest) {
     requestHeaders.set('x-lelungo-tenant-subdomain', tenantSubdomain);
   } else {
     requestHeaders.delete('x-lelungo-tenant-subdomain');
+  }
+
+  if (
+    isAuthenticationRequest(request.nextUrl.pathname) ||
+    requestMayContainSupabaseAuthentication(request)
+  ) {
+    return refreshSupabaseSession(request, requestHeaders);
   }
 
   return NextResponse.next({ request: { headers: requestHeaders } });
