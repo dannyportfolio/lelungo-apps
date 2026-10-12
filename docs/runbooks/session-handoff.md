@@ -147,4 +147,5 @@ Key corrections implemented in this session:
 3. Standard Next.js App Router 404: Replaced proxy rewrite with `/_not-found` and provided `src/app/not-found.tsx`.
 4. Staff root host guidance: Handled platform host context in `/staff` to display explicit tenant-subdomain navigation guidance (`[nama-hotel].lelungo.com/staff`) with sign-out support.
 5. OpenSpec Phase 2: Spec sync and archiving completed, validated with `openspec validate --all` (8/8 passed). All verification gates (`format:check`, `lint`, `typecheck`, `test` [32 files, 209 tests], `build`) passed cleanly.
+6. Production deployment verification: Commit `35fafee` pushed to `origin/agent/establish-tenant-safe-foundation`. Local workspace linked to Vercel project `lelunngo` (owner of custom domain `lelungo.com`) and successfully deployed to production via `vercel --prod` (Deployment ID: `dpl_Hz2D19cbHTzduGPkyN9Hv2vb8jWG`, live at `https://lelungo.com` returning 200 OK).
 

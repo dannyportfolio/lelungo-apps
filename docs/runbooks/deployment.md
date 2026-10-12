@@ -1,10 +1,10 @@
 # Deployment
 
 GitHub integration currently creates protected Vercel previews in two existing
-projects, `lelungo` and legacy-named `lelunngo`. Both projects built the
-foundation branch successfully on 2026-08-09. The duplicate project mapping is
-an unresolved release risk: select one canonical production project before any
-promotion. Production promotion and database migration remain unverified.
+projects, `lelungo` and legacy-named `lelunngo`. On 2026-10-12, production deployment was
+executed to canonical domain owner project `lelunngo` (`dpl_Hz2D19cbHTzduGPkyN9Hv2vb8jWG`)
+and successfully aliased to `https://lelungo.com` and `https://www.lelungo.com`.
+The duplicate project mapping risk remains until `lelungo` is consolidated.
 
 The release procedure is:
 
