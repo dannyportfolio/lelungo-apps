@@ -1,4 +1,4 @@
-import { test, waitForStableUI } from './test-utils';
+import { gotoApp, test } from './test-utils';
 import { expect } from '@playwright/test';
 
 test.describe('Hydration Mismatch Defense', () => {
@@ -11,10 +11,7 @@ test.describe('Hydration Mismatch Defense', () => {
       'Accept-Language': 'de-DE,de;q=0.9',
     });
 
-    await page.goto('/');
-
-    // Wait for React to fully hydrate and all network to settle
-    await waitForStableUI(page);
+    await gotoApp(page);
 
     // If we reached here without the global error handler throwing, the test passes.
     expect(true).toBe(true);

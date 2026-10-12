@@ -2,50 +2,89 @@ name: Production Quality Gate
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   build-and-test:
-    name: Build & Lint
+    name: Foundation quality gate
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lelungo_integration_test
+          POSTGRES_USER: lelungo_test
+          POSTGRES_PASSWORD: lelungo_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lelungo_test -d lelungo_integration_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/lelungo
+      TEST_DATABASE_URL: postgresql://lelungo_test:lelungo_test_password@localhost:5432/lelungo_integration_test
+      NEXT_PUBLIC_APP_ENV: test
+      NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-key
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: npm
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Type Check
-        run: npx tsc --noEmit
+      - name: Validate formatting
+        run: npm run format:check
 
-      - name: Run Linter
+      - name: Validate Prisma schema
+        run: npm run prisma:validate
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Validate OpenSpec
+        run: npm run spec:validate
+
+      - name: Run linter
         run: npm run lint
 
-      - name: Build Project
-        run: npm run build
-        env:
-          NEXT_PUBLIC_APP_ENV: production
-          NEXT_PUBLIC_SUPABASE_URL: "https://mock.supabase.co"
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-key"
+      - name: Type check
+        run: npm run typecheck
 
-      # Optional: Lighthouse CI
-      # This runs a basic Lighthouse audit on the statically built Next.js app
-      - name: Run Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v12
-        with:
-          staticDistDir: './.next/server/app' # Approximation for static pages, or serve the app
-          configPath: '' # Optional: define a lighthouserc.json for fine-grained thresholds
-          temporaryPublicStorage: true
-          uploadArtifacts: true
-        continue-on-error: true # Set to false to strictly block merge if Lighthouse fails
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Apply committed migrations to disposable PostgreSQL
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+        run: node ./node_modules/prisma/build/index.js migrate deploy
+
+      - name: Run PostgreSQL integration tests
+        run: npm run test:integration
+
+      - name: Install Chromium for tenant-host browser tests
+        run: node ./node_modules/playwright/cli.js install --with-deps chromium
+
+      - name: Run tenant-host browser tests
+        env:
+          CI: 'true'
+          BASE_URL: http://localhost:3000
+          E2E_SUPABASE_URL: ''
+        run: npm run test:e2e -- --project=chromium
+
+      - name: Build project
+        run: npm run build
+
+      - name: Audit critical dependency vulnerabilities
+        run: npm audit --audit-level=critical

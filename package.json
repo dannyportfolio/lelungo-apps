@@ -2,27 +2,43 @@
   "name": "lelungo",
   "version": "1.0.0",
   "private": true,
-  "description": "Lelungo — Travel Deal Discovery & Affiliate Platform",
+  "description": "Lelungo multi-tenant Property Management System foundation",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "build:prod": "set NEXT_PUBLIC_ENABLE_QA=false && next build",
-    "start": "next start",
-    "lint": "eslint .",
-    "type-check": "next typegen && tsc --noEmit"
+    "dev": "node ./node_modules/next/dist/bin/next dev",
+    "build": "node ./node_modules/next/dist/bin/next build",
+    "build:prod": "set NEXT_PUBLIC_ENABLE_QA=false && node ./node_modules/next/dist/bin/next build",
+    "start": "node ./node_modules/next/dist/bin/next start",
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
+    "typecheck": "node ./node_modules/next/dist/bin/next typegen && node ./node_modules/typescript/bin/tsc --noEmit",
+    "type-check": "npm run typecheck",
+    "test": "node ./node_modules/vitest/vitest.mjs run",
+    "test:integration": "node ./node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts",
+    "test:e2e": "node ./node_modules/playwright/cli.js test",
+    "format": "node ./node_modules/prettier/bin/prettier.cjs --write \"src/modules/**/*.{ts,tsx}\" \"src/shared/**/*.{ts,tsx}\" \"tests/unit/**/*.{ts,tsx}\" src/proxy.ts",
+    "format:check": "node ./node_modules/prettier/bin/prettier.cjs --check \"src/modules/**/*.{ts,tsx}\" \"src/shared/**/*.{ts,tsx}\" \"tests/unit/**/*.{ts,tsx}\" src/proxy.ts",
+    "prisma:generate": "node ./node_modules/prisma/build/index.js generate",
+    "prisma:validate": "node ./node_modules/prisma/build/index.js validate",
+    "spec:validate": "node ./node_modules/@fission-ai/openspec/bin/openspec.js validate --all",
+    "verify": "npm run format:check && npm run prisma:validate && npm run spec:validate && npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.47.10",
+    "@prisma/client": "^6.19.1",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.2",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
     "lucide-react": "^0.468.0",
     "next": "^16.2.11",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "^1.8.0",
     "@playwright/test": "^1.61.1",
     "@types/node": "^22.19.19",
     "@types/react": "^19.2.17",
@@ -31,8 +47,11 @@
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.2.11",
     "postcss": "^8.5.15",
+    "prettier": "^3.9.6",
+    "prisma": "^6.19.1",
     "tailwindcss": "^3.4.17",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.4"
   },
   "overrides": {
     "sharp": "^0.35.3",

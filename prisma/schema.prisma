@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TenantStatus {
+  PENDING
+  PROVISIONING
+  ACTIVE
+  FAILED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum RoleScope {
+  PLATFORM
+  TENANT
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+  REVOKED
+}
+
+enum PropertyAccessMode {
+  ALL_PROPERTIES
+  SELECTED_PROPERTIES
+}
+
+enum PropertyLifecycle {
+  DRAFT
+  PUBLISHED
+  INACTIVE
+  ARCHIVED
+}
+
+enum AuditActorType {
+  STAFF
+  SYSTEM
+}
+
+enum AuditResult {
+  SUCCEEDED
+}
+
+model Tenant {
+  id          String            @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String            @unique
+  status      TenantStatus      @default(PENDING)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  domains     TenantDomain[]
+  memberships StaffMembership[]
+  roles       Role[]
+  properties  Property[]
+  auditEvents AuditEvent[]
+
+  @@map("tenants")
+}
+
+model TenantDomain {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  subdomain String   @unique
+  isPrimary Boolean  @default(true) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId])
+  @@map("tenant_domains")
+}
+
+model Role {
+  id              String                @id @default(uuid()) @db.Uuid
+  key             String
+  name            String
+  scope           RoleScope
+  tenantId        String?               @map("tenant_id") @db.Uuid
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  tenant          Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permissions     RolePermission[]
+  membershipRoles StaffMembershipRole[]
+
+  @@unique([tenantId, key])
+  @@unique([tenantId, id])
+  @@index([scope, tenantId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  key         String           @unique
+  description String
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id") @db.Uuid
+  permissionId String     @map("permission_id") @db.Uuid
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model StaffMembership {
+  id                    String                    @id @default(uuid()) @db.Uuid
+  userId                String                    @map("user_id") @db.Uuid
+  tenantId              String?                   @map("tenant_id") @db.Uuid
+  status                MembershipStatus          @default(INVITED)
+  propertyAccessMode    PropertyAccessMode?       @map("property_access_mode")
+  propertyScopeVersion  Int?                      @map("property_scope_version")
+  createdAt             DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant                Tenant?                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roles                 StaffMembershipRole[]
+  propertyScopes        MembershipPropertyScope[] @relation("MembershipPropertyScopes")
+  propertyScopesGranted MembershipPropertyScope[] @relation("PropertyScopeGrantedBy")
+  actorAuditEvents      AuditEvent[]              @relation("AuditActorMembership")
+
+  @@unique([tenantId, userId])
+  @@unique([tenantId, id])
+  @@index([userId, status])
+  @@index([tenantId, status])
+  @@index([tenantId, propertyAccessMode, status])
+  @@map("staff_memberships")
+}
+
+model StaffMembershipRole {
+  tenantId     String          @map("tenant_id") @db.Uuid
+  membershipId String          @map("membership_id") @db.Uuid
+  roleId       String          @map("role_id") @db.Uuid
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  membership   StaffMembership @relation(fields: [tenantId, membershipId], references: [tenantId, id], onDelete: Cascade)
+  role         Role            @relation(fields: [tenantId, roleId], references: [tenantId, id], onDelete: Cascade)
+
+  @@id([tenantId, membershipId, roleId])
+  @@index([tenantId, roleId])
+  @@map("staff_membership_roles")
+}
+
+model PropertyClassification {
+  key         String     @id @db.VarChar(64)
+  displayName String     @map("display_name") @db.VarChar(120)
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  properties  Property[]
+
+  @@index([isActive, key])
+  @@map("property_classifications")
+}
+
+model Amenity {
+  key         String            @id @db.VarChar(64)
+  displayName String            @map("display_name") @db.VarChar(120)
+  isActive    Boolean           @default(true) @map("is_active")
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  properties  PropertyAmenity[]
+
+  @@index([isActive, key])
+  @@map("amenities")
+}
+
+model Property {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  tenantId           String                    @map("tenant_id") @db.Uuid
+  name               String                    @db.VarChar(120)
+  slug               String                    @db.VarChar(80)
+  classificationKey  String                    @map("classification_key") @db.VarChar(64)
+  timezone           String                    @db.VarChar(100)
+  shortDescription   String?                   @map("short_description") @db.VarChar(500)
+  publicWhatsAppE164 String?                   @map("public_whatsapp_e164") @db.VarChar(16)
+  lifecycle          PropertyLifecycle         @default(DRAFT)
+  version            Int                       @default(1)
+  publishedAt        DateTime?                 @map("published_at") @db.Timestamptz(6)
+  deactivatedAt      DateTime?                 @map("deactivated_at") @db.Timestamptz(6)
+  archivedAt         DateTime?                 @map("archived_at") @db.Timestamptz(6)
+  createdAt          DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime                  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant             Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  classification     PropertyClassification    @relation(fields: [classificationKey], references: [key], onDelete: Restrict)
+  address            PropertyAddress?
+  amenities          PropertyAmenity[]
+  membershipScopes   MembershipPropertyScope[]
+  auditEvents        AuditEvent[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, slug])
+  @@index([tenantId, lifecycle, slug, id])
+  @@index([classificationKey, lifecycle])
+  @@map("properties")
+}
+
+model PropertyAddress {
+  tenantId    String   @map("tenant_id") @db.Uuid
+  propertyId  String   @map("property_id") @db.Uuid
+  line1       String   @map("line_1") @db.VarChar(200)
+  line2       String?  @map("line_2") @db.VarChar(200)
+  locality    String   @db.VarChar(100)
+  adminArea   String   @map("admin_area") @db.VarChar(100)
+  postalCode  String?  @map("postal_code") @db.VarChar(12)
+  countryCode String   @default("ID") @map("country_code") @db.Char(2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  property    Property @relation(fields: [tenantId, propertyId], references: [tenantId, id], onDelete: Restrict)
+
+  @@id([tenantId, propertyId])
+  @@index([tenantId, locality, adminArea])
+  @@map("property_addresses")
+}
+
+model PropertyAmenity {
+  tenantId   String   @map("tenant_id") @db.Uuid
+  propertyId String   @map("property_id") @db.Uuid
+  amenityKey String   @map("amenity_key") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  property   Property @relation(fields: [tenantId, propertyId], references: [tenantId, id], onDelete: Restrict)
+  amenity    Amenity  @relation(fields: [amenityKey], references: [key], onDelete: Restrict)
+
+  @@id([tenantId, propertyId, amenityKey])
+  @@index([amenityKey, tenantId])
+  @@map("property_amenities")
+}
+
+model MembershipPropertyScope {
+  tenantId              String          @map("tenant_id") @db.Uuid
+  membershipId          String          @map("membership_id") @db.Uuid
+  propertyId            String          @map("property_id") @db.Uuid
+  grantedAt             DateTime        @default(now()) @map("granted_at") @db.Timestamptz(6)
+  grantedByMembershipId String          @map("granted_by_membership_id") @db.Uuid
+  membership            StaffMembership @relation("MembershipPropertyScopes", fields: [tenantId, membershipId], references: [tenantId, id], onDelete: Restrict)
+  property              Property        @relation(fields: [tenantId, propertyId], references: [tenantId, id], onDelete: Restrict)
+  grantedByMembership   StaffMembership @relation("PropertyScopeGrantedBy", fields: [tenantId, grantedByMembershipId], references: [tenantId, id], onDelete: Restrict)
+
+  @@id([tenantId, membershipId, propertyId])
+  @@index([tenantId, propertyId, membershipId])
+  @@index([tenantId, grantedByMembershipId])
+  @@map("membership_property_scopes")
+}
+
+model AuditEvent {
+  id                    String           @id @default(uuid()) @db.Uuid
+  tenantId              String           @map("tenant_id") @db.Uuid
+  propertyId            String?          @map("property_id") @db.Uuid
+  actorType             AuditActorType   @map("actor_type")
+  actorId               String           @map("actor_id") @db.VarChar(128)
+  actorMembershipId     String?          @map("actor_membership_id") @db.Uuid
+  action                String           @db.VarChar(100)
+  targetType            String           @map("target_type") @db.VarChar(64)
+  targetId              String           @map("target_id") @db.VarChar(128)
+  result                AuditResult      @default(SUCCEEDED)
+  aggregateVersion      Int?             @map("aggregate_version")
+  previousScopeVersion  Int?             @map("previous_scope_version")
+  resultingScopeVersion Int?             @map("resulting_scope_version")
+  correlationId         String           @map("correlation_id") @db.Uuid
+  changedFields         String[]         @default([]) @map("changed_fields")
+  occurredAt            DateTime         @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  tenant                Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  property              Property?        @relation(fields: [tenantId, propertyId], references: [tenantId, id], onDelete: Restrict)
+  actorMembership       StaffMembership? @relation("AuditActorMembership", fields: [tenantId, actorMembershipId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([tenantId, occurredAt, id])
+  @@index([tenantId, propertyId, occurredAt])
+  @@index([tenantId, actorMembershipId, occurredAt])
+  @@index([tenantId, targetType, targetId, occurredAt])
+  @@map("audit_events")
+}

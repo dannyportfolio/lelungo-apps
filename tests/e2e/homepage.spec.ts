@@ -1,12 +1,9 @@
-import { test, waitForStableUI } from './test-utils';
+import { gotoApp, test } from './test-utils';
 import { expect } from '@playwright/test';
 
 test.describe('Homepage Load', () => {
   test('should load without console errors and hero section is visible', async ({ page }) => {
-    await page.goto('/');
-
-    // Wait for the UI to be fully stable and rendered
-    await waitForStableUI(page);
+    await gotoApp(page);
 
     // Ensure hero section visible
     const heading = page.locator('h1');
